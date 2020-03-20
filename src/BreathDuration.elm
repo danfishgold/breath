@@ -49,17 +49,19 @@ addTrainingIn duration (BreathDuration bd) =
     let
         newTraining =
             duration :: bd.trainingIn
+
+        averageDuration =
+            calculateAverageDuration newTraining
     in
     BreathDuration
         { bd
             | trainingIn = newTraining
             , durationIn =
-                case calculateDuration 4 newTraining of
-                    Nothing ->
-                        bd.durationIn
+                if List.length newTraining < 4 then
+                    Unknown averageDuration
 
-                    Just averageDuration ->
-                        Known averageDuration
+                else
+                    Known averageDuration
         }
 
 
@@ -82,27 +84,25 @@ addTrainingOut duration (BreathDuration bd) =
     let
         newTraining =
             duration :: bd.trainingOut
+
+        averageDuration =
+            calculateAverageDuration newTraining
     in
     BreathDuration
         { bd
             | trainingOut = newTraining
             , durationOut =
-                case calculateDuration 3 newTraining of
-                    Nothing ->
-                        bd.durationOut
+                if List.length newTraining < 3 then
+                    Unknown averageDuration
 
-                    Just averageDuration ->
-                        Known averageDuration
+                else
+                    Known averageDuration
         }
 
 
-calculateDuration : Int -> List Float -> Maybe Float
-calculateDuration minimumTrainings durations =
-    if List.length durations < minimumTrainings then
-        Nothing
-
-    else
-        Just (weightedAverage durations)
+calculateAverageDuration : List Float -> Float
+calculateAverageDuration durations =
+    weightedAverage durations
 
 
 weightedAverage : List Float -> Float
