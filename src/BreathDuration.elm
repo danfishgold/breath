@@ -3,6 +3,7 @@ module BreathDuration exposing
     , Duration(..)
     , addTrainingIn
     , addTrainingOut
+    , doneTraining
     , durationIn
     , durationOut
     , initial
@@ -32,6 +33,16 @@ initial inHalfLife outHalfLife =
         , durationIn = Unknown inHalfLife
         , durationOut = Unknown outHalfLife
         }
+
+
+doneTraining : BreathDuration -> Bool
+doneTraining (BreathDuration bd) =
+    case ( bd.durationIn, bd.durationOut ) of
+        ( Known _, Known _ ) ->
+            True
+
+        _ ->
+            False
 
 
 durationIn : BreathDuration -> Duration

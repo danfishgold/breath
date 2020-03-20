@@ -253,6 +253,17 @@ body model =
         , style "background-color" "lightblue"
         ]
         []
+    , if model.currentBreath /= Nothing then
+        div []
+            [ if BreathDuration.doneTraining model.breathDuration then
+                p [] [ text "Done learning! If the animation doesn't match your breathing, train it again" ]
+
+              else
+                p [] [ text "Learning your breathing pattern..." ]
+            ]
+
+      else
+        text ""
     ]
 
 
