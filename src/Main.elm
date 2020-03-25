@@ -4,8 +4,9 @@ import BreathDuration exposing (BreathDuration, Duration(..))
 import Browser
 import Browser.Events
 import Html exposing (Html, button, div, h1, p, span, text)
-import Html.Attributes exposing (style)
-import Html.Events exposing (onMouseDown, onMouseUp)
+import Html.Attributes exposing (id, style)
+import Html.Events exposing (onMouseDown, onMouseUp, preventDefaultOn)
+import Json.Decode as JD
 
 
 main : Program Flags Model Msg
@@ -19,7 +20,9 @@ main =
 
 
 type alias Flags =
-    {}
+    { isMouse : Bool
+    , maxWidth : Float
+    }
 
 
 type alias Model =
@@ -59,13 +62,18 @@ type Msg
 
 
 init : Flags -> ( Model, Cmd Msg )
-init _ =
-    ( { deviceType = Mouse
+init { isMouse, maxWidth } =
+    ( { deviceType =
+            if isMouse then
+                Mouse
+
+            else
+                Touch
       , currentBreath = Nothing
       , breathDuration = BreathDuration.initial 3000 3000
       , training = NotTraining
       , animationStart = 200
-      , animationEnds = { in_ = 500, out_ = 200 }
+      , animationEnds = { in_ = maxWidth, out_ = 200 }
       }
     , Cmd.none
     )
@@ -235,23 +243,29 @@ body model =
     in
     [ h1 [] [ text "Hello. Please breath" ]
     , p []
-        [ text "Click and hold the button as you inhale. "
+        [ text "Click and hold the square as you inhale. "
         , text "Release it as you breath out. "
         , text "Breathe as deep as you like. "
         , text "After the fourth breath the system will learn your breathing pattern."
         ]
-    , div []
-        [ button
-            [ onMouseDown ButtonHoldStarted
-            , onMouseUp ButtonHoldStopped
-            ]
-            [ text "boop" ]
-        ]
     , div
-        [ style "height" "200px"
-        , style "width" (String.fromFloat width ++ "px")
-        , style "background-color" "lightblue"
-        ]
+        (List.concat
+            [ [ style "height" "200px"
+              , style "width" (String.fromFloat width ++ "px")
+              , id "thing"
+              ]
+            , case model.deviceType of
+                Mouse ->
+                    [ onMouseDown ButtonHoldStarted
+                    , onMouseUp ButtonHoldStopped
+                    ]
+
+                Touch ->
+                    [ preventDefaultOn "touchstart" (JD.succeed ( ButtonHoldStarted, True ))
+                    , preventDefaultOn "touchend" (JD.succeed ( ButtonHoldStopped, True ))
+                    ]
+            ]
+        )
         []
     , if model.currentBreath /= Nothing then
         div []
